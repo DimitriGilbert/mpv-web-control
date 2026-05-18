@@ -30,7 +30,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />
       </head>
-      <body className="font-sans antialiased selection:bg-[rgba(79,184,178,0.2)]">
+      <body className="font-sans antialiased selection:bg-[rgba(109,111,222,0.2)]">
         <Header />
         {children}
         <Footer />
