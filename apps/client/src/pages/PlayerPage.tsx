@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react'
+import { useState, type ChangeEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api'
 
@@ -28,6 +28,9 @@ export function PlayerPage(): JSX.Element {
   const stop = useMutation({ mutationFn: api.stop, onSettled: () => queryClient.invalidateQueries({ queryKey: ['status'] }) })
   const clear = useMutation({ mutationFn: api.clearQueue, onSettled: () => queryClient.invalidateQueries({ queryKey: ['status'] }) })
 
+  const [localVolume, setLocalVolume] = useState<number | null>(null)
+  const [localSeek, setLocalSeek] = useState<number | null>(null)
+
   if (statusQuery.isLoading) {
     return <p>Loading player…</p>
   }
@@ -44,12 +47,29 @@ export function PlayerPage(): JSX.Element {
   const maxDuration = Math.max(0, status.duration)
   const position = Math.min(Math.max(0, status.position), maxDuration)
 
+  const displayVolume = localVolume ?? status.volume
+  const displayPosition = localSeek ?? position
+
   const onVolumeChange = (event: ChangeEvent<HTMLInputElement>) => {
-    volume.mutate(Number(event.target.value))
+    setLocalVolume(Number(event.target.value))
+  }
+
+  const onVolumeCommit = () => {
+    if (localVolume !== null) {
+      volume.mutate(localVolume)
+      setLocalVolume(null)
+    }
   }
 
   const onSeek = (event: ChangeEvent<HTMLInputElement>) => {
-    seek.mutate(Number(event.target.value))
+    setLocalSeek(Number(event.target.value))
+  }
+
+  const onSeekCommit = () => {
+    if (localSeek !== null) {
+      seek.mutate(localSeek)
+      setLocalSeek(null)
+    }
   }
 
   return (
@@ -79,17 +99,17 @@ export function PlayerPage(): JSX.Element {
         </div>
 
         <div className="mt-5">
-          <input className="w-full" type="range" min={0} max={maxDuration} step={0.25} value={position} onChange={onSeek} />
+          <input className="w-full" type="range" min={0} max={maxDuration} step={0.25} value={displayPosition} onChange={onSeek} onMouseUp={onSeekCommit} onTouchEnd={onSeekCommit} />
           <div className="flex justify-between text-sm text-gray-600">
-            <span>{secondsLabel(position)}</span>
+            <span>{secondsLabel(displayPosition)}</span>
             <span>{secondsLabel(maxDuration)}</span>
           </div>
         </div>
 
         <label className="mt-4 block text-sm font-medium" htmlFor="volume">
-          Volume: {Math.round(status.volume)}
+          Volume: {Math.round(displayVolume)}
         </label>
-        <input id="volume" className="w-full" type="range" min={0} max={100} step={1} value={status.volume} onChange={onVolumeChange} />
+        <input id="volume" className="w-full" type="range" min={0} max={100} step={1} value={displayVolume} onChange={onVolumeChange} onMouseUp={onVolumeCommit} onTouchEnd={onVolumeCommit} />
       </div>
 
       <section className="rounded border bg-white p-4">
