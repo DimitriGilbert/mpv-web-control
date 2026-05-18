@@ -7,4 +7,6 @@ dist
 packages/**/node_modules
 apps/**/node_modules
 tmp
+.env
+.env.*
 *.env
