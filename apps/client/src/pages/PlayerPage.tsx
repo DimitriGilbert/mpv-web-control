@@ -44,6 +44,8 @@ export function PlayerPage(): JSX.Element {
     return <p>No player status available.</p>
   }
 
+  const mutationError = playPause.error ?? volume.error ?? seek.error ?? next.error ?? previous.error ?? stop.error ?? clear.error
+
   const maxDuration = Math.max(0, status.duration)
   const position = Math.min(Math.max(0, status.position), maxDuration)
 
@@ -78,6 +80,8 @@ export function PlayerPage(): JSX.Element {
         <h1 className="text-2xl font-bold">Now Playing</h1>
         <p className="text-sm text-gray-600">mpv is {status.mpvRunning ? 'running' : 'not running'}</p>
       </header>
+
+      {mutationError && <div style={{ color: 'red' }}>Error: {mutationError.message}</div>}
 
       <div className="rounded border bg-white p-4 shadow-sm">
         <h2 className="truncate text-xl font-semibold">{status.current?.name ?? 'Nothing loaded'}</h2>

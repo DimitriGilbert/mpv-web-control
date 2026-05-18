@@ -37,6 +37,8 @@ export function PlaylistsPage(): JSX.Element {
     }
   }
 
+  const mutationError = save.error ?? load.error ?? append.error ?? remove.error
+
   return (
     <section className="mx-auto flex max-w-5xl flex-col gap-4">
       <header>
@@ -57,6 +59,7 @@ export function PlaylistsPage(): JSX.Element {
       </div>
 
       {playlists.error instanceof Error ? <p className="rounded bg-red-100 p-3 text-red-800">{playlists.error.message}</p> : null}
+      {mutationError && <div style={{ color: 'red' }}>Error: {mutationError.message}</div>}
       {playlists.isLoading ? <p>Loading playlists…</p> : null}
 
       <div className="overflow-hidden rounded border bg-white">

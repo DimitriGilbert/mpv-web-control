@@ -29,6 +29,8 @@ export function FileBrowserPage(): JSX.Element {
     return segments.length === 0 ? '.' : segments.join('/')
   }, [path])
 
+  const mutationError = queueFile.error ?? queueFolder.error
+
   return (
     <section className="mx-auto flex max-w-5xl flex-col gap-4">
       <header className="flex items-center justify-between gap-4">
@@ -44,6 +46,7 @@ export function FileBrowserPage(): JSX.Element {
       </header>
 
       {error instanceof Error ? <p className="rounded bg-red-100 p-3 text-red-800">{error.message}</p> : null}
+      {mutationError && <div style={{ color: 'red' }}>Error: {mutationError.message}</div>}
       {isLoading ? <p>Loading…</p> : null}
 
       <div className="overflow-hidden rounded border bg-white">
