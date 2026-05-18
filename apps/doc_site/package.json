@@ -1,0 +1,26 @@
+{
+  "name": "doc_site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "deploy": "pnpm build && gh-pages -d dist -t true"
+  },
+  "dependencies": {
+    "@tanstack/react-router": "^1.132.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@tanstack/router-plugin": "^1.132.0",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^5.0.4",
+    "gh-pages": "^6.3.0",
+    "typescript": "^5.8.3",
+    "vite": "^7.1.10"
+  }
+}
