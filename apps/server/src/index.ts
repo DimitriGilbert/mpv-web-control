@@ -213,7 +213,7 @@ class MpvService {
 
     const queue = playlist.map((item) => makeQueueItem(item.filename))
     const currentIndex = playlistPos === null || playlistPos < 0 ? null : playlistPos
-    const current = currentIndex === null ? null : queue.at(currentIndex) ?? null
+    const current = currentIndex === null ? null : queue[currentIndex] ?? null
 
     return {
       mpvRunning: this.isRunning(),

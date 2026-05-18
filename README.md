@@ -38,7 +38,13 @@ pnpm build
 
 ## Development
 
-Run backend and frontend in separate terminals:
+Run the full development stack (server + client) from one terminal:
+
+```bash
+MUSIC_ROOT=/path/to/music pnpm dev
+```
+
+If you want to run each app separately:
 
 ```bash
 MUSIC_ROOT=/path/to/music pnpm dev:server
@@ -49,6 +55,20 @@ Open the Vite dev server, usually:
 
 ```txt
 http://localhost:5173
+```
+
+## Workspace Checks
+
+Run all package and app builds:
+
+```bash
+pnpm build
+```
+
+Run full type checks across all packages/apps:
+
+```bash
+pnpm check-types
 ```
 
 ## Production

@@ -6,10 +6,12 @@
     "apps/*"
   ],
   "scripts": {
+    "dev": "pnpm --parallel --filter server --filter client dev",
     "dev:server": "pnpm --filter server dev",
     "dev:client": "pnpm --filter client dev",
-    "build": "pnpm --filter @mpv/contract build && pnpm --filter server build && pnpm --filter client build",
-    "typecheck": "pnpm --filter @mpv/contract typecheck && pnpm --filter server typecheck && pnpm --filter client typecheck",
+    "build": "pnpm -r --filter @mpv/contract --filter server --filter client build",
+    "typecheck": "pnpm -r --filter @mpv/contract --filter server --filter client typecheck",
+    "check-types": "pnpm typecheck",
     "start": "pnpm --filter server start"
   }
 }

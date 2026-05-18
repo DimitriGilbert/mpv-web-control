@@ -1,5 +1,6 @@
 import type { ChangeEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { QueueItem } from '@mpv/contract'
 import { api } from '../api'
 
 function secondsLabel(value: number): string {
@@ -101,7 +102,7 @@ export function PlayerPage(): JSX.Element {
         </div>
         {status.queue.length === 0 ? <p className="text-gray-600">Queue is empty.</p> : null}
         <ol className="list-decimal space-y-1 pl-5">
-          {status.queue.map((item, index) => (
+          {status.queue.map((item: QueueItem, index: number) => (
             <li key={`${item.path}-${index}`} className={index === status.currentIndex ? 'font-semibold text-blue-800' : ''}>
               {item.name}
             </li>
