@@ -1,0 +1,15 @@
+{
+  "name": "mpv-web-control",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:server": "pnpm --filter server dev",
+    "dev:client": "pnpm --filter client dev",
+    "build": "pnpm --filter @mpv/contract build && pnpm --filter server build && pnpm --filter client build",
+    "typecheck": "pnpm --filter @mpv/contract typecheck && pnpm --filter server typecheck && pnpm --filter client typecheck",
+    "start": "pnpm --filter server start"
+  }
+}
