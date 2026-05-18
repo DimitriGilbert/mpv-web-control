@@ -29,8 +29,8 @@ async function parseError(response: Response): Promise<string> {
 
 async function requestJson<TResponse>(path: string, init?: RequestInit): Promise<TResponse> {
   const response = await fetch(path, {
-    headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
     ...init,
+    headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
   })
 
   if (!response.ok) {
