@@ -32,14 +32,52 @@ interface AppConfig {
   maxFolderItems: number
 }
 
+function parsePositiveInt(value: string | undefined, fallback: number): number {
+  if (!value) {
+    return fallback
+  }
+
+  const parsed = Number.parseInt(value, 10)
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback
+  }
+
+  return parsed
+}
+
+function readPortOverride(): number | null {
+  const args = process.argv.slice(2)
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index]
+    if (arg === '--port' || arg === '-p') {
+      const value = args[index + 1]
+      const parsed = Number.parseInt(value ?? '', 10)
+      if (Number.isFinite(parsed) && parsed > 0) {
+        return parsed
+      }
+    }
+
+    if (arg.startsWith('--port=')) {
+      const parsed = Number.parseInt(arg.slice('--port='.length), 10)
+      if (Number.isFinite(parsed) && parsed > 0) {
+        return parsed
+      }
+    }
+  }
+
+  return null
+}
+
+const portFromArgs = readPortOverride()
+
 const config: AppConfig = {
   host: process.env.HOST ?? '0.0.0.0',
-  port: Number.parseInt(process.env.PORT ?? '3000', 10),
+  port: portFromArgs ?? parsePositiveInt(process.env.PORT, 3000),
   musicRoot: resolve(process.env.MUSIC_ROOT ?? process.cwd()),
   playlistsDir: resolve(process.env.PLAYLISTS_DIR ?? join(process.cwd(), '.mpv-web-control', 'playlists')),
   mpvSocketPath: process.env.MPV_SOCKET_PATH ?? '/tmp/mpv-web-control.sock',
   mpvBin: process.env.MPV_BIN ?? 'mpv',
-  maxFolderItems: Number.parseInt(process.env.MAX_FOLDER_ITEMS ?? '5000', 10),
+  maxFolderItems: parsePositiveInt(process.env.MAX_FOLDER_ITEMS, 5000),
 }
 
 const pathInputSchema = z.object({ path: z.string().default('.') })
