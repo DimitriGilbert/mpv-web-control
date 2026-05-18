@@ -123,6 +123,7 @@ class MpvService {
   private buffer = ''
   private nextRequestId = 1
   private readonly pending = new Map<number, (response: MpvResponse<unknown>) => void>()
+  private startPromise: Promise<void> | null = null
 
   isRunning(): boolean {
     return this.child !== null && this.socket !== null && !this.socket.destroyed
@@ -133,6 +134,20 @@ class MpvService {
       return
     }
 
+    if (this.startPromise !== null) {
+      return this.startPromise
+    }
+
+    this.startPromise = this.doStart()
+    try {
+      await this.startPromise
+    } catch (error) {
+      this.startPromise = null
+      throw error
+    }
+  }
+
+  private async doStart(): Promise<void> {
     await this.unlinkSocketIfPresent()
 
     this.child = spawn(config.mpvBin, [
@@ -148,6 +163,7 @@ class MpvService {
       this.socket?.destroy()
       this.socket = null
       this.child = null
+      this.startPromise = null
     })
 
     await this.waitForSocket()
@@ -274,7 +290,14 @@ class MpvService {
         continue
       }
 
-      const parsed = mpvResponseSchema.safeParse(JSON.parse(rawMessage))
+      let parsed: ReturnType<typeof mpvResponseSchema.safeParse>
+      try {
+        parsed = mpvResponseSchema.safeParse(JSON.parse(rawMessage))
+      } catch (error) {
+        console.error('Failed to parse mpv message:', rawMessage, error)
+        continue
+      }
+
       if (!parsed.success) {
         continue
       }
@@ -315,7 +338,9 @@ class MpvService {
   private async connectSocket(): Promise<void> {
     await new Promise<void>((resolveConnect, rejectConnect) => {
       const socket = createConnection(config.mpvSocketPath)
+      let connected = false
       socket.once('connect', () => {
+        connected = true
         this.socket = socket
         socket.on('data', (data) => this.handleSocketData(data))
         socket.once('close', () => {
@@ -323,8 +348,12 @@ class MpvService {
         })
         resolveConnect()
       })
-      socket.once('error', (error) => {
-        rejectConnect(error)
+      socket.on('error', (error) => {
+        if (!connected) {
+          rejectConnect(error)
+        } else {
+          console.error('Socket error:', error)
+        }
       })
     })
   }
@@ -406,7 +435,20 @@ async function playlistSummaries(): Promise<PlaylistSummary[]> {
 const app = new Hono()
 
 app.onError((error, c) => {
-  const message = error instanceof Error ? error.message : 'Unknown server error'
+  const fsErrorCodes = new Set(['ENOENT', 'EACCES', 'EISDIR', 'ENOTDIR', 'EMFILE', 'ENFILE', 'ENAMETOOLONG', 'ENOSPC', 'ELOOP', 'ENOTEMPTY', 'EEXIST', 'EPERM'])
+  let message: string
+  if (error instanceof Error && 'code' in error && fsErrorCodes.has((error as NodeJS.ErrnoException).code ?? '')) {
+    const code = (error as NodeJS.ErrnoException).code
+    if (code === 'ENOENT') {
+      message = 'File not found'
+    } else if (code === 'EACCES') {
+      message = 'Permission denied'
+    } else {
+      message = 'Filesystem error'
+    }
+  } else {
+    message = error instanceof Error ? error.message : 'Unknown server error'
+  }
   return c.json(errorResponse(message), 500)
 })
 
