@@ -108,7 +108,7 @@ function Layout() {
           </div>
         </nav>
         {!isPlayerPage && <MiniPlayer />}
-        <main className="flex-1 min-h-0 p-3">
+        <main className="flex-1 min-h-0 p-3 [&>*]:h-full">
           <Outlet />
         </main>
       </div>
