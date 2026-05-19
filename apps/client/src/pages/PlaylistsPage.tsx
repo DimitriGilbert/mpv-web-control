@@ -141,7 +141,7 @@ export function PlaylistsPage(): JSX.Element {
               </p>
             </div>
           ) : (
-            <ScrollArea className="max-h-[60vh]">
+            <ScrollArea className="h-[60vh]">
               {playlists.map((playlist) => (
                 <div
                   key={playlist.id}

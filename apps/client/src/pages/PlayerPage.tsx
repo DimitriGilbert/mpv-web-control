@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
 import { Slider } from '#/components/ui/slider'
 import { Badge } from '#/components/ui/badge'
 import { ScrollArea } from '#/components/ui/scroll-area'
+
 import {
   Dialog,
   DialogContent,
@@ -342,7 +343,7 @@ export function PlayerPage(): JSX.Element {
               your library to add tracks.
             </p>
           ) : (
-            <ScrollArea className="max-h-[300px] lg:max-h-[calc(100vh-280px)] overflow-hidden">
+            <ScrollArea className="h-[300px] lg:h-[calc(100vh-280px)]">
               <div className="space-y-1">
                 {status.queue.map((item, index) => (
                   <button

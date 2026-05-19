@@ -38,10 +38,10 @@ function Layout() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
-        <nav className="sticky top-0 z-50 bg-card border-b">
-          <div className="flex items-center justify-between px-4 h-14">
-            <div className="font-bold text-lg tracking-tight">MPV Control</div>
+      <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
+        <nav className="shrink-0 z-50 bg-card border-b">
+          <div className="flex items-center justify-between px-3 h-10">
+            <div className="font-bold text-sm tracking-tight">MPV Control</div>
             <div className="flex items-center gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -108,7 +108,7 @@ function Layout() {
           </div>
         </nav>
         {!isPlayerPage && <MiniPlayer />}
-        <main className="flex-1 p-4">
+        <main className="flex-1 min-h-0 p-3">
           <Outlet />
         </main>
       </div>
