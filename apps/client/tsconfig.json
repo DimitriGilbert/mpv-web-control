@@ -6,7 +6,10 @@
     "composite": true,
     "skipLibCheck": true,
     "rootDir": "src",
-    "outDir": "dist"
+    "outDir": "dist",
+    "paths": {
+      "#/*": ["./src/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["dist"]

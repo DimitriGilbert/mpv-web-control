@@ -3,6 +3,7 @@ packages:
   - apps/*
 allowBuilds:
   esbuild: true
+  msw: true
 ignoredBuiltDependencies:
   - esbuild
 minimumReleaseAge: 720

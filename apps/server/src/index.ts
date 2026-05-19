@@ -235,16 +235,16 @@ class MpvService {
       this.safeProperty<number>('playlist-pos'),
     ])
 
-    const queue = playlist.map((item) => makeQueueItem(item.filename))
+    const queue = (playlist ?? []).map((item) => makeQueueItem(item.filename))
     const currentIndex = playlistPos === null || playlistPos < 0 ? null : playlistPos
     const current = currentIndex === null ? null : queue.at(currentIndex) ?? null
 
     return {
       mpvRunning: this.isRunning(),
-      paused,
+      paused: paused ?? true,
       position: position ?? 0,
       duration: duration ?? 0,
-      volume,
+      volume: volume ?? 100,
       currentIndex,
       current,
       queue,
