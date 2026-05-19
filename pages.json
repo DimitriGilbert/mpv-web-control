@@ -1,0 +1,24 @@
+{
+  "pages": [
+    {
+      "path": "/"
+    },
+    {
+      "path": "/docs"
+    },
+    {
+      "path": "/docs/architecture"
+    },
+    {
+      "path": "/docs/configuration"
+    },
+    {
+      "path": "/docs/features"
+    },
+    {
+      "path": "/docs/getting-started"
+    }
+  ],
+  "host": "https://mpv-web-control.dbuild.dev",
+  "lastBuilt": "2026-05-19T15:55:11.108Z"
+}
