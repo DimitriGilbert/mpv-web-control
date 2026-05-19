@@ -97,6 +97,9 @@ WantedBy=multi-user.target`}</pre>
       <p>
         Drop this in <code>/etc/systemd/system/mpv-web-control.service</code> and run <code>systemctl enable --now mpv-web-control</code>. Now it starts on boot and restarts if it crashes.
       </p>
+      <p>
+        The <code>scripts/install.sh</code> script automates all of this — systemd unit, system user, directory layout, the lot. You only need to write the unit file by hand if you're doing something custom. See <a href="/docs/getting-started">Getting Started</a> for the packaged deployment flow.
+      </p>
     </article>
   )
 }

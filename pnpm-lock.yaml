@@ -6,7 +6,20 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    dependencies:
+      '@hono/node-server':
+        specifier: ^1.19.0
+        version: 1.19.14(hono@4.12.19)
+      '@hono/zod-validator':
+        specifier: ^0.7.4
+        version: 0.7.6(hono@4.12.19)(zod@4.4.3)
+      hono:
+        specifier: ^4.10.6
+        version: 4.12.19
+      zod:
+        specifier: ^4.1.12
+        version: 4.4.3
 
   apps/client:
     dependencies:

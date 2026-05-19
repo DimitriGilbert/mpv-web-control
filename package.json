@@ -1,6 +1,26 @@
 {
   "name": "mpv-web-control",
-  "private": true,
+  "version": "0.0.0",
+  "description": "Web remote control for mpv — browser-based UI for audio playback",
+  "keywords": ["mpv", "audio", "remote", "web", "control", "music"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DimitriGilbert/mpv-web-control.git"
+  },
+  "type": "module",
+  "bin": {
+    "mpv-web-control": "./bin/mpv-web-control.mjs"
+  },
+  "files": [
+    "bin",
+    "apps/server/dist",
+    "apps/client/dist",
+    "scripts"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
   "workspaces": [
     "packages/*",
     "apps/*"
@@ -11,5 +31,11 @@
     "build": "pnpm --filter @mpv/contract build && pnpm --filter server build && pnpm --filter client build",
     "typecheck": "pnpm --filter @mpv/contract typecheck && pnpm --filter server typecheck && pnpm --filter client typecheck",
     "start": "pnpm --filter server start"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.0",
+    "@hono/zod-validator": "^0.7.4",
+    "hono": "^4.10.6",
+    "zod": "^4.1.12"
   }
 }

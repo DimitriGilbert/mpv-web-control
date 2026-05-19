@@ -26,14 +26,68 @@ sudo apt install mpv
 
 ## Install
 
+### From npm (recommended)
+
 ```bash
-pnpm install
+npm install -g mpv-web-control
 ```
 
-## Build
+Then run:
 
 ```bash
+mpv-web-control start
+```
+
+Or use without installing:
+
+```bash
+npx mpv-web-control start
+```
+
+### From source
+
+```bash
+git clone https://github.com/DimitriGilbert/mpv-web-control.git
+cd mpv-web-control
+pnpm install
 pnpm build
+MUSIC_ROOT=/path/to/music pnpm start
+```
+
+## CLI
+
+```
+mpv-web-control <command>
+
+Commands:
+  start       Start the server (default)
+  install     Install as systemd service (requires root)
+  uninstall   Uninstall the systemd service
+  package     Create a distributable tarball
+  version     Print version
+  help        Show help
+```
+
+## Production Deployment (Linux)
+
+Build a tarball on any machine:
+
+```bash
+bash scripts/package.sh
+```
+
+Copy the tarball to the target machine, then:
+
+```bash
+sudo bash scripts/install.sh mpv-web-control-*.tar.gz
+sudo nano /etc/mpv-web-control/env   # set MUSIC_ROOT
+sudo systemctl start mpv-web-control
+```
+
+Uninstall:
+
+```bash
+sudo bash scripts/install.sh --uninstall
 ```
 
 ## Development
@@ -49,26 +103,6 @@ Open the Vite dev server, usually:
 
 ```txt
 http://localhost:5173
-```
-
-## Production
-
-Build the frontend and backend:
-
-```bash
-pnpm build
-```
-
-Start the backend, which also serves the built SPA:
-
-```bash
-MUSIC_ROOT=/path/to/music pnpm start
-```
-
-Default URL:
-
-```txt
-http://<pi-ip>:3000
 ```
 
 ## Environment Variables
@@ -94,6 +128,32 @@ http://<pi-ip>:3000
 - Save current queue as a JSON playlist.
 - Load, append, and delete playlists.
 - No database.
+
+## Releasing
+
+```bash
+bash scripts/release.sh <version> [--no-gh] [--no-npm] [--dry-run]
+```
+
+The release script:
+1. Validates the version (semver required)
+2. Runs typecheck and build as guards
+3. Bumps version in all package.json files
+4. Commits, tags, and pushes
+5. Creates a GitHub Release with the tarball attached
+6. Publishes to npm
+
+Flags:
+- `--no-gh` — skip GitHub Release creation
+- `--no-npm` — skip npm publish
+- `--dry-run` — print what would happen without executing mutations (checks and builds still run)
+
+Example:
+
+```bash
+bash scripts/release.sh 1.0.0 --dry-run   # preview
+bash scripts/release.sh 1.0.0             # full release
+```
 
 ## Security Notes
 

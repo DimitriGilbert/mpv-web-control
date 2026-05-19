@@ -338,7 +338,7 @@ export function PlayerPage(): JSX.Element {
               your library to add tracks.
             </p>
           ) : (
-            <ScrollArea className="max-h-[300px] lg:max-h-[calc(100vh-280px)]">
+            <ScrollArea className="max-h-[300px] lg:max-h-[calc(100vh-280px)] overflow-hidden">
               <div className="space-y-1">
                 {status.queue.map((item, index) => (
                   <div

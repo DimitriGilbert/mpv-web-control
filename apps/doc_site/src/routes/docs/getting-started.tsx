@@ -22,6 +22,14 @@ sudo apt install mpv`}</pre>
       </p>
 
       <h2>Get the code</h2>
+      <p>
+        If you just want to run it, install from npm:
+      </p>
+      <pre>{`npm install -g mpv-web-control
+mpv-web-control start`}</pre>
+      <p>
+        Or build from source:
+      </p>
       <pre>{`git clone <repo-url> mpv-web-control
 cd mpv-web-control
 pnpm install`}</pre>
@@ -42,6 +50,29 @@ pnpm install`}</pre>
       </p>
       <p>
         If mpv isn't already running in the background, the server starts it for you and connects over a Unix socket at <code>/tmp/mpv-web-control.sock</code>.
+      </p>
+
+      <h2>Deploy to a server</h2>
+      <p>
+        If you're running this on a headless machine (Pi, VPS, whatever) and want it to start on boot, use the packaging script:
+      </p>
+      <pre>{`# On your build machine:
+git clone <repo-url> mpv-web-control
+cd mpv-web-control
+pnpm install
+bash scripts/package.sh`}</pre>
+      <p>
+        This produces a tarball in <code>dist/</code>. Copy it to the target machine and run the installer:
+      </p>
+      <pre>{`# On the target machine:
+sudo bash scripts/install.sh mpv-web-control-*.tar.gz`}</pre>
+      <p>
+        The installer creates a system user, extracts everything to <code>/opt/mpv-web-control</code>, installs a systemd service, and writes a config file to <code>/etc/mpv-web-control/env</code>. You need to set <code>MUSIC_ROOT</code> there before starting:
+      </p>
+      <pre>{`sudo nano /etc/mpv-web-control/env
+sudo systemctl start mpv-web-control`}</pre>
+      <p>
+        To uninstall: <code>sudo bash scripts/install.sh --uninstall</code>.
       </p>
 
       <h2>Development mode</h2>
