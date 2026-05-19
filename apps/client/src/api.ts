@@ -90,6 +90,12 @@ export const api = {
       body: JSON.stringify({ position }),
     })
   },
+  jumpTo(index: number): Promise<OkResponse> {
+    return requestJson<OkResponse>('/api/player/jump', {
+      method: 'POST',
+      body: JSON.stringify({ index }),
+    })
+  },
   playlists(): Promise<PlaylistSummary[]> {
     return requestJson<PlaylistSummary[]>('/api/playlists')
   },

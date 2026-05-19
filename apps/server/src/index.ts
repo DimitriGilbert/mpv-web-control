@@ -48,6 +48,7 @@ const queueFolderSchema = z.object({ path: z.string().min(1) })
 const pauseSchema = z.object({ pause: z.boolean().optional() })
 const volumeSchema = z.object({ volume: z.number().min(0).max(100) })
 const seekSchema = z.object({ position: z.number().min(0) })
+const jumpSchema = z.object({ index: z.number().int().min(0) })
 const playlistNameSchema = z.object({ name: z.string().trim().min(1).max(80) })
 const playlistIdSchema = z.object({ id: z.string().trim().min(1).max(120) })
 const loadPlaylistSchema = z.object({ id: z.string().trim().min(1).max(120), mode: z.enum(['replace', 'append']).default('replace') })
@@ -198,6 +199,10 @@ class MpvService {
 
   async stop(): Promise<void> {
     await this.command(['stop'])
+  }
+
+  async jumpTo(index: number): Promise<void> {
+    await this.command(['set_property', 'playlist-pos', index])
   }
 
   async setPause(pause: boolean | undefined): Promise<void> {
@@ -550,6 +555,12 @@ app.post('/api/player/seek', zValidator('json', seekSchema), async (c) => {
   const { position } = c.req.valid('json')
   await mpv.seek(position)
   return c.json(await mpv.status(), 200)
+})
+
+app.post('/api/player/jump', zValidator('json', jumpSchema), async (c) => {
+  const { index } = c.req.valid('json')
+  await mpv.jumpTo(index)
+  return c.json(okResponse(), 200)
 })
 
 app.get('/api/playlists', async (c) => {

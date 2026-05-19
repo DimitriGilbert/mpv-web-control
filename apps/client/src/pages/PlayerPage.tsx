@@ -69,6 +69,10 @@ export function PlayerPage(): JSX.Element {
     mutationFn: api.stop,
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['status'] }),
   })
+  const jumpTo = useMutation({
+    mutationFn: api.jumpTo,
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['status'] }),
+  })
   const clear = useMutation({
     mutationFn: api.clearQueue,
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['status'] }),
@@ -341,11 +345,20 @@ export function PlayerPage(): JSX.Element {
             <ScrollArea className="max-h-[300px] lg:max-h-[calc(100vh-280px)] overflow-hidden">
               <div className="space-y-1">
                 {status.queue.map((item, index) => (
-                  <div
+                  <button
+                    type="button"
                     key={`${item.path}-${index}`}
-                    className={`flex items-center gap-3 rounded-md px-3 py-1.5 text-sm ${
-                      index === status.currentIndex ? 'bg-accent/50 font-medium' : ''
+                    className={`flex w-full items-center gap-3 rounded-md px-3 py-1.5 text-sm text-left transition-colors ${
+                      index === status.currentIndex
+                        ? 'bg-accent/50 font-medium'
+                        : 'hover:bg-accent/30 cursor-pointer'
                     }`}
+                    disabled={jumpTo.isPending}
+                    onClick={() => {
+                      if (index !== status.currentIndex) {
+                        jumpTo.mutate(index)
+                      }
+                    }}
                   >
                     <span className="w-6 text-right text-muted-foreground tabular-nums">
                       {index + 1}
@@ -354,7 +367,7 @@ export function PlayerPage(): JSX.Element {
                       <Play className="h-3 w-3 shrink-0" />
                     )}
                     <span className="truncate">{item.name}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
             </ScrollArea>
