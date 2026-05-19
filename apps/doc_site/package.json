@@ -10,7 +10,7 @@
     "build": "vite build",
     "check-types": "tsc --noEmit",
     "preview": "vite preview",
-    "deploy": "pnpm build && gh-pages -d dist/client -t true"
+    "deploy": "pnpm build && gh-pages -d dist/client"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",

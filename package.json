@@ -30,7 +30,8 @@
     "dev:client": "pnpm --filter client dev",
     "build": "pnpm --filter @mpv/contract build && pnpm --filter server build && pnpm --filter client build",
     "typecheck": "pnpm --filter @mpv/contract typecheck && pnpm --filter server typecheck && pnpm --filter client typecheck",
-    "start": "pnpm --filter server start"
+    "start": "pnpm --filter server start",
+    "deploy": "pnpm --filter doc_site deploy"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.0",
