@@ -17,34 +17,6 @@ const mockStatus = {
 
 const state = { ...mockStatus }
 
-let positionInterval: ReturnType<typeof setInterval> | null = null
-
-function startPlayback() {
-  if (positionInterval) clearInterval(positionInterval)
-  positionInterval = setInterval(() => {
-    if (!state.paused && state.current) {
-      state.position += 0.25
-      if (state.position >= state.duration) {
-        const nextIdx =
-          state.currentIndex !== null && state.currentIndex < state.queue.length - 1
-            ? state.currentIndex + 1
-            : null
-        if (nextIdx !== null) {
-          state.currentIndex = nextIdx
-          state.current = state.queue[nextIdx]
-          state.position = 0
-          state.duration = 180 + Math.floor(Math.random() * 120)
-        } else {
-          state.paused = true
-          state.position = state.duration
-        }
-      }
-    }
-  }, 250)
-}
-
-startPlayback()
-
 let playlistCounter = 2
 const playlists: Array<{
   id: string
@@ -264,9 +236,36 @@ function mockHandler(url: URL, method: string, body: Record<string, unknown>): R
 }
 
 function mockApiPlugin(): Plugin {
+  let positionInterval: ReturnType<typeof setInterval> | null = null
+
+  function startPlayback() {
+    if (positionInterval) clearInterval(positionInterval)
+    positionInterval = setInterval(() => {
+      if (!state.paused && state.current) {
+        state.position += 0.25
+        if (state.position >= state.duration) {
+          const nextIdx =
+            state.currentIndex !== null && state.currentIndex < state.queue.length - 1
+              ? state.currentIndex + 1
+              : null
+          if (nextIdx !== null) {
+            state.currentIndex = nextIdx
+            state.current = state.queue[nextIdx]
+            state.position = 0
+            state.duration = 180 + Math.floor(Math.random() * 120)
+          } else {
+            state.paused = true
+            state.position = state.duration
+          }
+        }
+      }
+    }, 250)
+  }
+
   return {
     name: 'mock-api',
     configureServer(server) {
+      startPlayback()
       server.middlewares.use('/api', async (req, res, next) => {
         try {
           const url = new URL('/api' + (req.url ?? '/'), `http://localhost:${server.config.server.port}`)
