@@ -216,15 +216,23 @@ class MpvService {
     await this.command(['seek', position, 'absolute', 'exact'])
   }
 
+  private async safeProperty<T>(name: string): Promise<T | null> {
+    try {
+      return await this.property<T>(name)
+    } catch {
+      return null
+    }
+  }
+
   async status(): Promise<PlayerStatus> {
     await this.ensureStarted()
     const [paused, position, duration, volume, playlist, playlistPos] = await Promise.all([
-      this.property<boolean>('pause'),
-      this.property<number | null>('time-pos'),
-      this.property<number | null>('duration'),
-      this.property<number>('volume'),
-      this.property<MpvPlaylistItem[]>('playlist'),
-      this.property<number | null>('playlist-pos'),
+      this.safeProperty<boolean>('pause'),
+      this.safeProperty<number>('time-pos'),
+      this.safeProperty<number>('duration'),
+      this.safeProperty<number>('volume'),
+      this.safeProperty<MpvPlaylistItem[]>('playlist'),
+      this.safeProperty<number>('playlist-pos'),
     ])
 
     const queue = playlist.map((item) => makeQueueItem(item.filename))
@@ -580,8 +588,7 @@ app.delete('/api/playlists/:id', zValidator('param', playlistIdSchema), async (c
 })
 
 const clientDist = resolve(appRoot, 'apps/client/dist')
-app.use('/assets/*', serveStatic({ root: clientDist }))
-app.use('/favicon.ico', serveStatic({ root: clientDist }))
+app.use('/*', serveStatic({ root: clientDist }))
 app.get('*', serveStatic({ path: join(clientDist, 'index.html') }))
 
 export type AppType = typeof app
