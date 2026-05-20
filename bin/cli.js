@@ -29,6 +29,9 @@ Commands:
 
 Options:
   --music-root    Set music root directory (install command)
+  --port          Set HTTP port (install command)
+  --user          Set service user (install command)
+  --no-enable     Do not enable or start the systemd service (install command)
   -v, --version   Print version
   -h, --help      Show this help
 `)
@@ -57,6 +60,8 @@ function prompt(question) {
 async function doInstall(args) {
   let musicRoot = null
   let port = null
+  let user = null
+  let noEnable = false
   const rest = []
 
   for (let i = 0; i < args.length; i++) {
@@ -66,6 +71,11 @@ async function doInstall(args) {
     } else if (args[i] === '--port' && args[i + 1]) {
       port = args[i + 1]
       i++
+    } else if (args[i] === '--user' && args[i + 1]) {
+      user = args[i + 1]
+      i++
+    } else if (args[i] === '--no-enable') {
+      noEnable = true
     } else {
       rest.push(args[i])
     }
@@ -84,7 +94,11 @@ async function doInstall(args) {
     if (!port) port = '3000'
   }
 
-  runScript('install.sh', ['--from-npm', '--music-root', musicRoot, '--port', port, ...rest])
+  const installArgs = ['--from-npm', '--music-root', musicRoot, '--port', port]
+  if (user) installArgs.push('--user', user)
+  if (noEnable) installArgs.push('--no-enable')
+
+  runScript('install.sh', [...installArgs, ...rest])
 }
 
 const argv = process.argv.slice(2)

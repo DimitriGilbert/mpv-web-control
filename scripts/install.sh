@@ -17,6 +17,11 @@ readonly CONFIG_FILE="${CONFIG_DIR}/env"
 readonly SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 readonly SYSTEM_USER="${SERVICE_NAME}"
 readonly SYSTEM_GROUP="${SERVICE_NAME}"
+readonly DATA_DIR="/var/lib/${SERVICE_NAME}"
+
+SERVICE_USER=""
+SERVICE_GROUP=""
+ENABLE_SERVICE=true
 
 # --- Colors ------------------------------------------------------------------
 
@@ -86,13 +91,15 @@ check_mpv() {
 # --- System user --------------------------------------------------------------
 
 create_system_user() {
-    if id "${SYSTEM_USER}" &>/dev/null; then
-        log_info "User '${SYSTEM_USER}' already exists."
+    local user="${SERVICE_USER:-${SYSTEM_USER}}"
+
+    if id "${user}" &>/dev/null; then
+        log_info "User '${user}' already exists."
         return 0
     fi
 
-    useradd --system --no-create-home --shell /usr/sbin/nologin "${SYSTEM_USER}"
-    log_info "Created system user '${SYSTEM_USER}'."
+    useradd --system --no-create-home --shell /usr/sbin/nologin "${user}"
+    log_info "Created system user '${user}'."
 }
 
 # --- Tarball detection --------------------------------------------------------
@@ -162,7 +169,7 @@ extract_tarball() {
 
     tar xzf "${tarball}" --strip-components=1 -C "${INSTALL_DIR}"
 
-    chown -R "${SYSTEM_USER}:${SYSTEM_GROUP}" "${INSTALL_DIR}"
+    chown -R "${SERVICE_USER:-${SYSTEM_USER}}:${SERVICE_GROUP:-${SYSTEM_GROUP}}" "${INSTALL_DIR}"
 
     log_info "Extracted $(basename "${tarball}") to ${INSTALL_DIR}"
 }
@@ -216,7 +223,12 @@ ENVEOF
         log_info "Set PORT=${port}"
     fi
 
-    chown "${SYSTEM_USER}:${SYSTEM_GROUP}" "${CONFIG_FILE}"
+    if ! grep -qE '^\s*PLAYLISTS_DIR=' "${CONFIG_FILE}" 2>/dev/null; then
+        echo "PLAYLISTS_DIR=${DATA_DIR}/playlists" >> "${CONFIG_FILE}"
+        log_info "Set PLAYLISTS_DIR=${DATA_DIR}/playlists"
+    fi
+
+    chown "${SERVICE_USER:-${SYSTEM_USER}}:${SERVICE_GROUP:-${SERVICE_USER:-${SYSTEM_USER}}}" "${CONFIG_FILE}"
     chmod 600 "${CONFIG_FILE}"
 
     if ! grep -qE '^\s*MUSIC_ROOT=' "${CONFIG_FILE}" 2>/dev/null; then
@@ -230,8 +242,20 @@ ENVEOF
 install_service() {
     local exec_start="$1"
     local working_dir="$2"
+    local music_root="${3:-}"
+
+    local user="${SERVICE_USER:-${SYSTEM_USER}}"
+    local group="${SERVICE_GROUP:-${user}}"
 
     log_step "Installing systemd service"
+
+    local rw_paths="/tmp ${DATA_DIR}"
+    if [[ -n "${music_root}" ]]; then
+        rw_paths="${rw_paths} ${music_root}"
+    fi
+
+    mkdir -p "${DATA_DIR}"
+    chown "${user}:${group}" "${DATA_DIR}"
 
     cat > "${SERVICE_FILE}" <<EOF
 [Unit]
@@ -240,8 +264,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=${SYSTEM_USER}
-Group=${SYSTEM_GROUP}
+User=${user}
+Group=${group}
 WorkingDirectory=${working_dir}
 ExecStart=${exec_start}
 EnvironmentFile=${CONFIG_FILE}
@@ -250,9 +274,8 @@ RestartSec=5
 
 NoNewPrivileges=true
 ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=/tmp
-PrivateTmp=false
+ProtectHome=read-only
+ReadWritePaths=${rw_paths}
 
 [Install]
 WantedBy=multi-user.target
@@ -261,9 +284,17 @@ EOF
     chmod 644 "${SERVICE_FILE}"
 
     systemctl daemon-reload
-    systemctl enable "${SERVICE_NAME}" &>/dev/null
+    if [[ "${ENABLE_SERVICE}" == true ]]; then
+        systemctl enable "${SERVICE_NAME}" &>/dev/null
+        systemctl restart "${SERVICE_NAME}" || {
+            log_error "Failed to start ${SERVICE_NAME}. Check logs with: sudo journalctl -u ${SERVICE_NAME} -n 50 --no-pager"
+            exit 1
+        }
+        log_info "Service installed, enabled, and started."
+        return 0
+    fi
 
-    log_info "Service installed and enabled."
+    log_info "Service installed. Enable/start skipped (--no-enable)."
 }
 
 # --- Install summary ----------------------------------------------------------
@@ -275,7 +306,7 @@ print_install_summary() {
     echo "  Config file:  ${CONFIG_FILE}"
     echo ""
     echo "  Edit config:  sudo nano ${CONFIG_FILE}"
-    echo "  Start:        sudo systemctl start ${SERVICE_NAME}"
+    echo "  Restart:      sudo systemctl restart ${SERVICE_NAME}"
     echo "  Status:       sudo systemctl status ${SERVICE_NAME}"
     echo "  Logs:         sudo journalctl -u ${SERVICE_NAME} -f"
     echo ""
@@ -321,17 +352,21 @@ uninstall() {
         fi
     fi
 
-    if id "${SYSTEM_USER}" &>/dev/null; then
-        if ask_yes_no "Remove system user '${SYSTEM_USER}'?"; then
-            userdel "${SYSTEM_USER}" 2>/dev/null || true
-            log_info "Removed user '${SYSTEM_USER}'."
+    if [[ -d "${DATA_DIR}" ]]; then
+        if ask_yes_no "Remove data directory ${DATA_DIR}?"; then
+            rm -rf "${DATA_DIR}"
+            log_info "Removed ${DATA_DIR}"
         else
-            log_info "Kept user '${SYSTEM_USER}'."
+            log_info "Kept ${DATA_DIR}"
         fi
     fi
 
     echo ""
     echo -e "${GREEN}${BOLD}Uninstall complete.${RESET}"
+    echo ""
+    echo "  Removed:"
+    echo "    - ${SERVICE_FILE}"
+    echo "    - ${INSTALL_DIR}/"
     echo ""
 }
 
@@ -364,7 +399,7 @@ install_from_npm() {
 
     install_config "${music_root}" "${port}"
 
-    install_service "${bin_path} start" "${npm_pkg_dir}"
+    install_service "${bin_path} start" "${npm_pkg_dir}" "${music_root}"
 
     print_install_summary
 }
@@ -387,8 +422,8 @@ install_from_tarball() {
 
     create_system_user
     extract_tarball "${tarball}"
-    install_config ""
-    install_service "${INSTALL_DIR}/start.sh" "${INSTALL_DIR}"
+    install_config "" ""
+    install_service "${INSTALL_DIR}/start.sh" "${INSTALL_DIR}" ""
 
     print_install_summary
 }
@@ -417,6 +452,15 @@ main() {
                 --port)
                     port="${2:-}"
                     shift 2 || true
+                    ;;
+                --user)
+                    SERVICE_USER="${2:-}"
+                    SERVICE_GROUP="${SERVICE_USER}"
+                    shift 2 || true
+                    ;;
+                --no-enable)
+                    ENABLE_SERVICE=false
+                    shift || true
                     ;;
                 *)
                     shift || true
