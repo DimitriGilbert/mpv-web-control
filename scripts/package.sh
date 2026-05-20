@@ -8,8 +8,6 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 STAGING_BASE="${REPO_ROOT}/dist/staging"
 STAGING_DIR="${STAGING_BASE}/mpv-web-control"
-DEPLOY_TEMP="${STAGING_BASE}/deploy-temp"
-
 # ── helpers ──────────────────────────────────────────────────────────────────
 
 info()  { printf '\033[1;34m[INFO]\033[0m  %s\n' "$*"; }
@@ -85,19 +83,17 @@ cp -r "${REPO_ROOT}/apps/client/dist/." "${STAGING_DIR}/apps/client/dist/"
 # ── production dependencies via pnpm deploy ──────────────────────────────────
 
 info "Resolving production dependencies..."
-rm -rf "${DEPLOY_TEMP}"
+mkdir -p "${STAGING_DIR}/node_modules"
 
-# pnpm deploy creates a standalone copy of a workspace package with only
-# production node_modules — workspace deps like @mpv/contract are inlined.
-if ! pnpm --filter=server deploy --prod "${DEPLOY_TEMP}" 2>&1; then
-  die "pnpm deploy failed — check that the server workspace package is valid"
+src_nm="${REPO_ROOT}/node_modules"
+if [[ -d "$src_nm" ]]; then
+  for dep in hono @hono/node-server @hono/zod-validator zod; do
+    if [[ -d "${src_nm}/${dep}" ]]; then
+      mkdir -p "${STAGING_DIR}/node_modules/$(dirname "$dep")"
+      cp -r "${src_nm}/${dep}" "${STAGING_DIR}/node_modules/${dep}"
+    fi
+  done
 fi
-
-# Move the resolved node_modules into the staging root so Node.js resolution
-# finds them from apps/server/dist/index.js  (walks up: apps/server/dist →
-# apps/server → apps → <root>/node_modules — matches).
-mv "${DEPLOY_TEMP}/node_modules" "${STAGING_DIR}/node_modules"
-rm -rf "${DEPLOY_TEMP}"
 
 ok "Production dependencies installed"
 
