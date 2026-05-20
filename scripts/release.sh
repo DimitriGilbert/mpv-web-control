@@ -250,6 +250,11 @@ github_release() {
     return 0
   fi
 
+  if [[ "$DRY_RUN" == true ]]; then
+    dryrun "Would run: gh release create v${VERSION} with tarball"
+    return 0
+  fi
+
   local tarball
   tarball="${REPO_ROOT}/dist/mpv-web-control-${VERSION}.tar.gz"
 
@@ -257,21 +262,8 @@ github_release() {
     die "Tarball not found: ${tarball}"
   fi
 
-  local gh_cmd=(
-    gh release create "v${VERSION}"
-    "$tarball"
-    --repo "$GITHUB_REPO"
-    --title "v${VERSION}"
-    --notes "Release v${VERSION}"
-  )
-
-  if [[ "$DRY_RUN" == true ]]; then
-    dryrun "Would run: ${gh_cmd[*]}"
-    return 0
-  fi
-
   info "Creating GitHub release v${VERSION}..."
-  if ! "${gh_cmd[@]}"; then
+  if ! gh release create "v${VERSION}" "$tarball" --repo "$GITHUB_REPO" --title "v${VERSION}" --notes "Release v${VERSION}"; then
     die "GitHub release creation failed"
   fi
   ok "GitHub release created: https://github.com/${GITHUB_REPO}/releases/tag/v${VERSION}"
@@ -321,7 +313,11 @@ print_summary() {
     echo "  npm:           (skipped)"
   fi
 
-  echo "  Tarball:       dist/mpv-web-control-${VERSION}.tar.gz"
+  if [[ "$DRY_RUN" == true ]]; then
+    echo "  Tarball:       (skipped)"
+  else
+    echo "  Tarball:       dist/mpv-web-control-${VERSION}.tar.gz"
+  fi
   echo ""
 
   if [[ "$DRY_RUN" == true ]]; then
