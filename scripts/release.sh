@@ -288,8 +288,7 @@ npm_publish() {
   fi
 
   info "Publishing to npm..."
-  local npm_output
-  npm_output="$(npm publish 2>&1)" || die "npm publish failed:\n${npm_output}"
+  npm publish || die "npm publish failed"
   ok "Published to npm: https://www.npmjs.com/package/mpv-web-control"
 }
 

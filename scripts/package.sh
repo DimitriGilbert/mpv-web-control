@@ -89,7 +89,7 @@ rm -rf "${DEPLOY_TEMP}"
 
 # pnpm deploy creates a standalone copy of a workspace package with only
 # production node_modules — workspace deps like @mpv/contract are inlined.
-if ! pnpm deploy "${DEPLOY_TEMP}" --filter server --prod 2>&1; then
+if ! pnpm --filter=server deploy --prod "${DEPLOY_TEMP}" 2>&1; then
   die "pnpm deploy failed — check that the server workspace package is valid"
 fi
 
