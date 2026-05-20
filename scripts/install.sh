@@ -362,7 +362,9 @@ install_from_npm() {
 
     log_info "Found mpv-web-control at ${bin_path}"
 
-    install_config "${music_root}" "${port}" "${bin_path} start" "${npm_pkg_dir}"
+    install_config "${music_root}" "${port}"
+
+    install_service "${bin_path} start" "${npm_pkg_dir}"
 
     print_install_summary
 }
