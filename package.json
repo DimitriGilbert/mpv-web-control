@@ -1,6 +1,6 @@
 {
   "name": "mpv-web-control",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Web remote control for mpv — browser-based UI for audio playback",
   "keywords": [
     "mpv",
