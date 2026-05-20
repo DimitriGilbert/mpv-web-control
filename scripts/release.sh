@@ -223,7 +223,7 @@ git_commit_tag_push() {
   ok "Tagged v${VERSION}"
 
   info "Pushing to remote..."
-  git -C "$REPO_ROOT" push
+  git -C "$REPO_ROOT" push -u origin HEAD
   git -C "$REPO_ROOT" push --tags
   ok "Pushed commit and tag to remote"
 }
