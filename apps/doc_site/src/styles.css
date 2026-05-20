@@ -227,7 +227,7 @@ pre code {
 }
 
 .page-wrap {
-  width: min(1120px, calc(100% - 2rem));
+  width: min(1440px, calc(100% - 2rem));
   margin-inline: auto;
 }
 

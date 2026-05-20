@@ -7,8 +7,8 @@ export const Route = createFileRoute('/')({ component: Landing })
 function Landing() {
   return (
     <main className="page-wrap px-4 pb-16 pt-10 sm:pt-16">
-      <section className="rise-in flex min-h-[60vh] flex-col justify-center py-12 sm:py-20 lg:flex-row lg:items-center lg:gap-20 lg:py-28">
-        <div className="max-w-xl lg:max-w-lg">
+      <section className="rise-in grid min-h-[60vh] items-center gap-10 py-12 sm:py-20 lg:grid-cols-[minmax(0,0.82fr)_minmax(520px,1.18fr)] lg:gap-8 lg:py-28 xl:grid-cols-[minmax(0,0.78fr)_minmax(640px,1.22fr)] xl:gap-12">
+        <div className="max-w-xl lg:max-w-[34rem]">
           <p className="island-kicker mb-4">mpv-web-control</p>
           <h1 className="display-title mb-6 text-[2.75rem] leading-[1.04] font-bold tracking-tight text-[var(--ink)] sm:text-6xl lg:text-7xl">
             Control mpv from your phone.
@@ -37,7 +37,7 @@ function Landing() {
           </div>
         </div>
 
-        <div className="mt-12 w-full max-w-lg opacity-0 rise-in lg:mt-0 lg:max-w-md" style={{ animationDelay: '200ms' }}>
+        <div className="w-full max-w-3xl opacity-0 rise-in lg:max-w-none" style={{ animationDelay: '200ms' }}>
           <Terminable
             title="pi@homelab"
             titleBarVariant="linux"
@@ -46,6 +46,7 @@ function Landing() {
             defaultTypingRandom={25}
             defaultOutputSpeed={90}
             commandDelay={450}
+            width="w-full"
             height="h-[360px]"
             startLine="Install once. Serve your local music over the LAN."
             commands={[
