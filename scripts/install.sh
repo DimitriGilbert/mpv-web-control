@@ -5,8 +5,8 @@ set -euo pipefail
 # mpv-web-control installer
 #
 # Usage:
-#   sudo ./scripts/install.sh                        # auto-detect tarball
-#   sudo ./scripts/install.sh /path/to/tarball.gz    # specify tarball
+#   sudo ./scripts/install.sh [PATH_TO_TARBALL]
+#   sudo ./scripts/install.sh --from-npm --music-root /path/to/music
 #   sudo ./scripts/install.sh --uninstall
 # =============================================================================
 
@@ -109,7 +109,6 @@ detect_tarball() {
         return 0
     fi
 
-    # Auto-detect: look in <script_dir>/../dist/
     local script_dir
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     local repo_root
@@ -121,6 +120,7 @@ detect_tarball() {
         echo ""
         echo "Usage:"
         echo "  sudo $0 [PATH_TO_TARBALL]"
+        echo "  sudo $0 --from-npm --music-root /path/to/music"
         echo "  sudo $0 --uninstall"
         exit 1
     fi
@@ -132,7 +132,7 @@ detect_tarball() {
         log_error "No tarball found in ${dist_dir}/"
         echo "  Expected: mpv-web-control-<version>.tar.gz"
         echo ""
-        echo "Build first:  pnpm build && pnpm package"
+        echo "Build first:  bash scripts/package.sh"
         exit 1
     fi
 
@@ -146,7 +146,6 @@ extract_tarball() {
 
     log_step "Installing to ${INSTALL_DIR}"
 
-    # Backup existing config if present
     if [[ -f "${CONFIG_FILE}" ]]; then
         local backup
         backup="/tmp/${SERVICE_NAME}-env-backup.$(date +%s)"
@@ -154,20 +153,15 @@ extract_tarball() {
         log_info "Backed up config to ${backup}"
     fi
 
-    # Remove old installation
     if [[ -d "${INSTALL_DIR}" ]]; then
         rm -rf "${INSTALL_DIR}"
         log_info "Removed previous installation."
     fi
 
-    # Create the install directory
     mkdir -p "${INSTALL_DIR}"
 
-    # Extract: the tarball contains a top-level mpv-web-control/ directory.
-    # We strip that leading component so contents land directly in INSTALL_DIR.
     tar xzf "${tarball}" --strip-components=1 -C "${INSTALL_DIR}"
 
-    # Set ownership
     chown -R "${SYSTEM_USER}:${SYSTEM_GROUP}" "${INSTALL_DIR}"
 
     log_info "Extracted $(basename "${tarball}") to ${INSTALL_DIR}"
@@ -176,41 +170,56 @@ extract_tarball() {
 # --- Config file --------------------------------------------------------------
 
 install_config() {
+    local music_root="${1:-}"
+    local port="${2:-}"
+
     log_step "Installing configuration"
 
     mkdir -p "${CONFIG_DIR}"
 
-    local example_env="${INSTALL_DIR}/mpv-web-control.env"
-
     if [[ -f "${CONFIG_FILE}" ]]; then
         log_info "Config file ${CONFIG_FILE} already exists — keeping it."
     else
+        local example_env="${INSTALL_DIR}/mpv-web-control.env"
+
         if [[ -f "${example_env}" ]]; then
             cp "${example_env}" "${CONFIG_FILE}"
             log_info "Installed config from example: ${CONFIG_FILE}"
         else
-            # Create a minimal config if no example exists
             cat > "${CONFIG_FILE}" <<'ENVEOF'
 # mpv-web-control configuration
-# See: https://github.com/user/mpv-web-control for docs
-
-# MUSIC_ROOT — root directory for music browsing
-# Uncomment and set to your music library path:
-# MUSIC_ROOT=/mnt/music
-
-# PORT — HTTP listen port (default: 8080)
-# PORT=8080
+#HOST=0.0.0.0
+#PORT=3000
+#MPV_SOCKET_PATH=/tmp/mpv-web-control.sock
+#MPV_BIN=mpv
+#MAX_FOLDER_ITEMS=5000
 ENVEOF
             log_info "Created default config: ${CONFIG_FILE}"
         fi
     fi
 
+    if [[ -n "${music_root}" ]]; then
+        if grep -qE '^\s*MUSIC_ROOT=' "${CONFIG_FILE}" 2>/dev/null; then
+            sed -i "s|^\s*MUSIC_ROOT=.*|MUSIC_ROOT=${music_root}|" "${CONFIG_FILE}"
+        else
+            echo "MUSIC_ROOT=${music_root}" >> "${CONFIG_FILE}"
+        fi
+        log_info "Set MUSIC_ROOT=${music_root}"
+    fi
+
+    if [[ -n "${port}" ]]; then
+        if grep -qE '^\s*PORT=' "${CONFIG_FILE}" 2>/dev/null; then
+            sed -i "s|^\s*PORT=.*|PORT=${port}|" "${CONFIG_FILE}"
+        else
+            echo "PORT=${port}" >> "${CONFIG_FILE}"
+        fi
+        log_info "Set PORT=${port}"
+    fi
+
     chown "${SYSTEM_USER}:${SYSTEM_GROUP}" "${CONFIG_FILE}"
     chmod 600 "${CONFIG_FILE}"
 
-    # Warn if MUSIC_ROOT is still commented out
-    if grep -qE '^\s*#\s*MUSIC_ROOT' "${CONFIG_FILE}" 2>/dev/null \
-       && ! grep -qE '^\s*MUSIC_ROOT=' "${CONFIG_FILE}" 2>/dev/null; then
+    if ! grep -qE '^\s*MUSIC_ROOT=' "${CONFIG_FILE}" 2>/dev/null; then
         log_warn "MUSIC_ROOT is not set in ${CONFIG_FILE}."
         log_warn "The service will default to the working directory."
     fi
@@ -219,25 +228,26 @@ ENVEOF
 # --- Systemd service ----------------------------------------------------------
 
 install_service() {
+    local exec_start="$1"
+    local working_dir="$2"
+
     log_step "Installing systemd service"
 
     cat > "${SERVICE_FILE}" <<EOF
 [Unit]
 Description=mpv-web-control - web remote for mpv
 After=network.target
-Wants=mpv.service
 
 [Service]
 Type=simple
 User=${SYSTEM_USER}
 Group=${SYSTEM_GROUP}
-WorkingDirectory=${INSTALL_DIR}
-ExecStart=${INSTALL_DIR}/start.sh
+WorkingDirectory=${working_dir}
+ExecStart=${exec_start}
 EnvironmentFile=${CONFIG_FILE}
 Restart=on-failure
 RestartSec=5
 
-# Security hardening
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
@@ -262,7 +272,6 @@ print_install_summary() {
     echo ""
     echo -e "${GREEN}${BOLD}Installation complete!${RESET}"
     echo ""
-    echo "  Install path: ${INSTALL_DIR}"
     echo "  Config file:  ${CONFIG_FILE}"
     echo ""
     echo "  Edit config:  sudo nano ${CONFIG_FILE}"
@@ -277,7 +286,6 @@ print_install_summary() {
 uninstall() {
     log_step "Uninstalling mpv-web-control"
 
-    # 1. Stop service
     if systemctl is-active --quiet "${SERVICE_NAME}" 2>/dev/null; then
         systemctl stop "${SERVICE_NAME}"
         log_info "Stopped ${SERVICE_NAME} service."
@@ -285,13 +293,11 @@ uninstall() {
         log_info "Service was not running."
     fi
 
-    # 2. Disable service
     if systemctl is-enabled --quiet "${SERVICE_NAME}" 2>/dev/null; then
         systemctl disable "${SERVICE_NAME}" &>/dev/null
         log_info "Disabled ${SERVICE_NAME} service."
     fi
 
-    # 3. Remove service file
     if [[ -f "${SERVICE_FILE}" ]]; then
         rm -f "${SERVICE_FILE}"
         log_info "Removed ${SERVICE_FILE}"
@@ -299,7 +305,6 @@ uninstall() {
 
     systemctl daemon-reload
 
-    # 4. Remove installation directory
     if [[ -d "${INSTALL_DIR}" ]]; then
         rm -rf "${INSTALL_DIR}"
         log_info "Removed ${INSTALL_DIR}"
@@ -307,7 +312,6 @@ uninstall() {
         log_info "Install directory ${INSTALL_DIR} does not exist."
     fi
 
-    # 5. Ask about config
     if [[ -d "${CONFIG_DIR}" ]]; then
         if ask_yes_no "Remove configuration directory ${CONFIG_DIR}?"; then
             rm -rf "${CONFIG_DIR}"
@@ -317,7 +321,6 @@ uninstall() {
         fi
     fi
 
-    # 6. Ask about user
     if id "${SYSTEM_USER}" &>/dev/null; then
         if ask_yes_no "Remove system user '${SYSTEM_USER}'?"; then
             userdel "${SYSTEM_USER}" 2>/dev/null || true
@@ -330,16 +333,70 @@ uninstall() {
     echo ""
     echo -e "${GREEN}${BOLD}Uninstall complete.${RESET}"
     echo ""
-    echo "  Removed:"
-    echo "    - ${SERVICE_FILE}"
-    echo "    - ${INSTALL_DIR}/"
+}
+
+# --- Install from npm ---------------------------------------------------------
+
+install_from_npm() {
+    local music_root="${1:-}"
+    local port="${2:-}"
+
+    echo -e "${BOLD}mpv-web-control installer (npm)${RESET}"
     echo ""
+
+    log_step "Checking prerequisites"
+    check_node
+    check_mpv
+
+    create_system_user
+
+    local bin_path
+    bin_path="$(command -v mpv-web-control)" || true
+    if [[ -z "${bin_path}" ]]; then
+        log_error "mpv-web-control not found in PATH"
+        exit 1
+    fi
+
+    local npm_pkg_dir
+    npm_pkg_dir="$(dirname "$(dirname "${bin_path}")")"
+
+    log_info "Found mpv-web-control at ${bin_path}"
+
+    install_config "${music_root}" "${port}" "${bin_path} start" "${npm_pkg_dir}"
+
+    print_install_summary
+}
+
+# --- Install from tarball -------------------------------------------------------
+
+install_from_tarball() {
+    local tarball_arg="${1:-}"
+
+    local tarball
+    tarball=$(detect_tarball "${tarball_arg}")
+
+    echo -e "${BOLD}mpv-web-control installer${RESET}"
+    echo "  Tarball: ${tarball}"
+    echo ""
+
+    log_step "Checking prerequisites"
+    check_node
+    check_mpv
+
+    create_system_user
+    extract_tarball "${tarball}"
+    install_config ""
+    install_service "${INSTALL_DIR}/start.sh" "${INSTALL_DIR}"
+
+    print_install_summary
 }
 
 # --- Main ---------------------------------------------------------------------
 
 main() {
     local arg="${1:-}"
+    local music_root=""
+    local port=""
 
     if [[ "${arg}" == "--uninstall" ]]; then
         check_root
@@ -347,38 +404,31 @@ main() {
         exit 0
     fi
 
-    # If the arg looks like a flag we don't know, bail
-    if [[ "${arg}" == --* ]]; then
-        log_error "Unknown option: ${arg}"
-        echo "Usage:"
-        echo "  sudo $0 [PATH_TO_TARBALL]"
-        echo "  sudo $0 --uninstall"
-        exit 1
+    if [[ "${arg}" == "--from-npm" ]]; then
+        shift || true
+        while [[ $# -gt 0 ]]; do
+            case "$1" in
+                --music-root)
+                    music_root="${2:-}"
+                    shift 2 || true
+                    ;;
+                --port)
+                    port="${2:-}"
+                    shift 2 || true
+                    ;;
+                *)
+                    shift || true
+                    ;;
+            esac
+        done
+
+        check_root
+        install_from_npm "${music_root}" "${port}"
+        exit 0
     fi
 
     check_root "${arg:-}"
-
-    # Resolve tarball
-    local tarball
-    tarball=$(detect_tarball "${arg:-}")
-
-    echo -e "${BOLD}mpv-web-control installer${RESET}"
-    echo "  Tarball: ${tarball}"
-    echo ""
-
-    # Prerequisites
-    log_step "Checking prerequisites"
-    check_node
-    check_mpv
-
-    # Install steps
-    create_system_user
-    extract_tarball "${tarball}"
-    install_config
-    install_service
-
-    # Done
-    print_install_summary
+    install_from_tarball "${arg:-}"
 }
 
 main "$@"

@@ -4,14 +4,13 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
+import { createInterface } from 'node:readline'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const pkgRoot = resolve(__dirname, '..')
 
 const pkg = JSON.parse(readFileSync(resolve(pkgRoot, 'package.json'), 'utf8'))
-
-// --- Command implementations ---------------------------------------------------
 
 function printVersion() {
   console.log(`mpv-web-control v${pkg.version}`)
@@ -29,6 +28,7 @@ Commands:
   help            Show this help
 
 Options:
+  --music-root    Set music root directory (install command)
   -v, --version   Print version
   -h, --help      Show this help
 `)
@@ -44,7 +44,48 @@ function runScript(scriptName, args) {
   execFileSync(scriptPath, args, { stdio: 'inherit', cwd: pkgRoot })
 }
 
-// --- Argument parsing ----------------------------------------------------------
+function prompt(question) {
+  const rl = createInterface({ input: process.stdin, output: process.stdout })
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      rl.close()
+      resolve(answer.trim())
+    })
+  })
+}
+
+async function doInstall(args) {
+  let musicRoot = null
+  let port = null
+  const rest = []
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--music-root' && args[i + 1]) {
+      musicRoot = args[i + 1]
+      i++
+    } else if (args[i] === '--port' && args[i + 1]) {
+      port = args[i + 1]
+      i++
+    } else {
+      rest.push(args[i])
+    }
+  }
+
+  if (!musicRoot) {
+    musicRoot = await prompt('Music root directory: ')
+    if (!musicRoot) {
+      console.error('Music root is required.')
+      process.exit(1)
+    }
+  }
+
+  if (!port) {
+    port = await prompt('HTTP port [3000]: ')
+    if (!port) port = '3000'
+  }
+
+  runScript('install.sh', ['--from-npm', '--music-root', musicRoot, '--port', port, ...rest])
+}
 
 const argv = process.argv.slice(2)
 const first = argv[0]
@@ -62,8 +103,6 @@ if (first === '--help' || first === '-h') {
 const command = first ?? 'start'
 const commandArgs = argv.slice(first !== undefined ? 1 : 0)
 
-// --- Dispatch ------------------------------------------------------------------
-
 switch (command) {
   case 'start': {
     startServer().catch((err) => {
@@ -73,7 +112,10 @@ switch (command) {
     break
   }
   case 'install': {
-    runScript('install.sh', commandArgs)
+    doInstall(commandArgs).catch((err) => {
+      console.error(err)
+      process.exit(1)
+    })
     break
   }
   case 'uninstall': {
