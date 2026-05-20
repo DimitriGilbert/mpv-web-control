@@ -17,7 +17,7 @@
   },
   "type": "module",
   "bin": {
-    "mpv-web-control": "./bin/mpv-web-control.mjs"
+    "mpv-web-control": "bin/cli.js"
   },
   "files": [
     "bin",

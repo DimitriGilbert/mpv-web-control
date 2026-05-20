@@ -214,17 +214,17 @@ git_commit_tag_push() {
   done
 
   info "Committing version bump..."
-  git -C "$REPO_ROOT" add "${files_to_add[@]}"
-  git -C "$REPO_ROOT" commit -m "release v${VERSION}"
+  git -C "$REPO_ROOT" add "${files_to_add[@]}" || die "git add failed"
+  git -C "$REPO_ROOT" commit -m "release v${VERSION}" || die "git commit failed"
   ok "Committed version bump"
 
   info "Tagging v${VERSION}..."
-  git -C "$REPO_ROOT" tag "v${VERSION}"
+  git -C "$REPO_ROOT" tag "v${VERSION}" || die "git tag failed (does tag v${VERSION} already exist?)"
   ok "Tagged v${VERSION}"
 
   info "Pushing to remote..."
-  git -C "$REPO_ROOT" push -u origin HEAD
-  git -C "$REPO_ROOT" push --tags
+  git -C "$REPO_ROOT" push -u origin HEAD || die "git push failed — commit and tag exist locally but were NOT pushed"
+  git -C "$REPO_ROOT" push --tags || die "git push --tags failed — commit was pushed but tag was NOT"
   ok "Pushed commit and tag to remote"
 }
 
@@ -284,9 +284,8 @@ npm_publish() {
   fi
 
   info "Publishing to npm..."
-  if ! npm publish; then
-    die "npm publish failed"
-  fi
+  local npm_output
+  npm_output="$(npm publish 2>&1)" || die "npm publish failed:\n${npm_output}"
   ok "Published to npm: https://www.npmjs.com/package/mpv-web-control"
 }
 
