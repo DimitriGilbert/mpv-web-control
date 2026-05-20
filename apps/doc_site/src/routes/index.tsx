@@ -1,5 +1,7 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 
+import Terminable from '#/components/ui/Terminable'
+
 export const Route = createFileRoute('/')({ component: Landing })
 
 function Landing() {
@@ -35,25 +37,39 @@ function Landing() {
           </div>
         </div>
 
-        <div className="shell-outer mt-12 w-full max-w-lg opacity-0 rise-in lg:mt-0 lg:max-w-md" style={{ animationDelay: '200ms' }}>
-          <div className="shell-inner p-5">
-            <div className="mb-3 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[#e5534b]" />
-              <span className="h-2 w-2 rounded-full bg-[#d29922]" />
-              <span className="h-2 w-2 rounded-full bg-[#57ab5a]" />
-              <span className="ml-3 text-xs text-[var(--ink-soft)] opacity-60">terminal</span>
-            </div>
-            <pre className="m-0 border-0 bg-transparent p-0 font-mono text-xs leading-relaxed text-[var(--ink-soft)] dark:text-[var(--ink-soft)]">
-{`$ sudo apt install mpv
-$ pnpm install
-$ MUSIC_ROOT=/mnt/music pnpm start
-
-  → listening on http://0.0.0.0:3000
-
-  Open that address on your phone.
-  You're done.`}
-            </pre>
-          </div>
+        <div className="mt-12 w-full max-w-lg opacity-0 rise-in lg:mt-0 lg:max-w-md" style={{ animationDelay: '200ms' }}>
+          <Terminable
+            title="pi@homelab"
+            titleBarVariant="linux"
+            termPrompt="$"
+            defaultTypingSpeed={14}
+            defaultTypingRandom={25}
+            defaultOutputSpeed={90}
+            commandDelay={450}
+            height="h-[360px]"
+            startLine="Install once. Serve your local music over the LAN."
+            commands={[
+              {
+                prompt: 'npm install -g mpv-web-control',
+                output: '+ mpv-web-control@latest',
+              },
+              {
+                prompt: 'sudo mpv-web-control install --user media --music-root /srv/music --port 3000',
+                output: [
+                  'mpv-web-control installer (npm)',
+                  '[OK] Node.js found.',
+                  '[OK] mpv found.',
+                  '[OK] Set MUSIC_ROOT=/srv/music',
+                  '[OK] Set PORT=3000',
+                  '[OK] Service installed, enabled, and started.',
+                ],
+              },
+              {
+                prompt: 'sudo systemctl status mpv-web-control',
+                output: 'active (running) — open http://pi.local:3000 on your phone',
+              },
+            ]}
+          />
         </div>
       </section>
 

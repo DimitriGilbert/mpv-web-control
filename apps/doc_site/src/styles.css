@@ -55,6 +55,17 @@
   --sidebar-accent-foreground: oklch(0.145 0.015 260);
   --sidebar-border: oklch(0.918 0.005 260);
   --sidebar-ring: oklch(0.585 0.16 280);
+  --terminable-bg: #1a1b26;
+  --terminable-prompt: #73daca;
+  --terminable-output: #c0caf5;
+  --terminable-titlebar-bg: #24283b;
+  --terminable-border: #3b4261;
+  --terminable-dot-green: #27c93f;
+  --terminable-dot-yellow: #ffbd2e;
+  --terminable-dot-red: #ff5f56;
+  --terminable-title-color: #a9b1d6;
+  --terminable-hover-bg: #292e42;
+  --terminable-cursor-color: #c0caf5;
 }
 
 .dark {
@@ -107,6 +118,17 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.27 0.015 260);
   --sidebar-ring: oklch(0.685 0.16 280);
+  --terminable-bg: #1a1b26;
+  --terminable-prompt: #73daca;
+  --terminable-output: #c0caf5;
+  --terminable-titlebar-bg: #24283b;
+  --terminable-border: #3b4261;
+  --terminable-dot-green: #27c93f;
+  --terminable-dot-yellow: #ffbd2e;
+  --terminable-dot-red: #ff5f56;
+  --terminable-title-color: #a9b1d6;
+  --terminable-hover-bg: #292e42;
+  --terminable-cursor-color: #c0caf5;
 }
 
 @theme inline {
@@ -147,6 +169,17 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-terminable-cursor-color: var(--terminable-cursor-color);
+  --color-terminable-hover-bg: var(--terminable-hover-bg);
+  --color-terminable-title-color: var(--terminable-title-color);
+  --color-terminable-dot-red: var(--terminable-dot-red);
+  --color-terminable-dot-yellow: var(--terminable-dot-yellow);
+  --color-terminable-dot-green: var(--terminable-dot-green);
+  --color-terminable-border: var(--terminable-border);
+  --color-terminable-titlebar-bg: var(--terminable-titlebar-bg);
+  --color-terminable-output: var(--terminable-output);
+  --color-terminable-prompt: var(--terminable-prompt);
+  --color-terminable-bg: var(--terminable-bg);
 }
 
 html,
