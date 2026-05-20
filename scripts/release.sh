@@ -215,8 +215,12 @@ git_commit_tag_push() {
 
   info "Committing version bump..."
   git -C "$REPO_ROOT" add "${files_to_add[@]}" || die "git add failed"
-  git -C "$REPO_ROOT" commit -m "release v${VERSION}" || die "git commit failed"
-  ok "Committed version bump"
+  if git -C "$REPO_ROOT" diff --cached --quiet 2>/dev/null; then
+    ok "Version already at ${VERSION}, nothing to commit"
+  else
+    git -C "$REPO_ROOT" commit -m "release v${VERSION}" || die "git commit failed"
+    ok "Committed version bump"
+  fi
 
   info "Tagging v${VERSION}..."
   git -C "$REPO_ROOT" tag "v${VERSION}" || die "git tag failed (does tag v${VERSION} already exist?)"
