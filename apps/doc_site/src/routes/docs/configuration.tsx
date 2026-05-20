@@ -10,7 +10,7 @@ function Configuration() {
       <p className="island-kicker mb-3">Configuration</p>
       <h1>Environment variables</h1>
       <p>
-        Everything is configured through environment variables. No config files, no settings UI, no YAML. Set them when you start the server and you're done.
+        Everything is configured through environment variables. For the systemd install, those variables live in <code>/etc/mpv-web-control/env</code>. For manual runs, set them when you start the server.
       </p>
 
       <table>
@@ -40,7 +40,7 @@ function Configuration() {
           <tr>
             <td><code>PLAYLISTS_DIR</code></td>
             <td><code>.mpv-web-control/playlists</code> under CWD</td>
-            <td>Where playlist JSON files are stored. Defaults to a hidden directory in your working dir. Change it if you want playlists somewhere specific.</td>
+            <td>Where playlist JSON files are stored. Defaults to a hidden directory in your working dir. The systemd install stores playlists under <code>/var/lib/mpv-web-control/playlists</code>.</td>
           </tr>
           <tr>
             <td><code>MPV_SOCKET_PATH</code></td>
@@ -79,27 +79,16 @@ pnpm start`}</pre>
       </p>
 
       <h3>systemd service</h3>
-      <pre>{`[Unit]
-Description=mpv-web-control
-After=network.target
-
-[Service]
-Type=simple
-User=mpv
-WorkingDirectory=/opt/mpv-web-control
-ExecStart=/usr/bin/pnpm start
-Environment=MUSIC_ROOT=/srv/music
-Environment=PORT=3000
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target`}</pre>
+      <pre>{`npm install -g mpv-web-control
+sudo mpv-web-control install --user didi --music-root /srv/music --port 3000`}</pre>
       <p>
-        Drop this in <code>/etc/systemd/system/mpv-web-control.service</code> and run <code>systemctl enable --now mpv-web-control</code>. Now it starts on boot and restarts if it crashes.
+        The install command writes <code>/etc/mpv-web-control/env</code>, installs the systemd unit, and enables and starts/restarts the service by default. <code>--user</code> controls the service user, so use an account that can read the music files.
       </p>
       <p>
-        The <code>scripts/install.sh</code> script automates all of this — systemd unit, system user, directory layout, the lot. You only need to write the unit file by hand if you're doing something custom. See <a href="/docs/getting-started">Getting Started</a> for the packaged deployment flow.
+        Omit <code>--music-root</code> to be prompted for it. Omit <code>--port</code> to be prompted with a default of <code>3000</code>. Add <code>--no-enable</code> if you want to install the unit and config without starting it.
       </p>
+      <pre>{`sudo systemctl status mpv-web-control
+sudo journalctl -u mpv-web-control -f`}</pre>
     </article>
   )
 }

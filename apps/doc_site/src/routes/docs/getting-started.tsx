@@ -21,14 +21,24 @@ sudo apt install mpv`}</pre>
         On macOS it's <code>brew install mpv</code>. On Arch, <code>pacman -S mpv</code>. You know the drill.
       </p>
 
-      <h2>Get the code</h2>
+      <h2>Install from npm</h2>
       <p>
-        If you just want to run it, install from npm:
+        For a homelab box, install the CLI globally and let it create the systemd service:
       </p>
       <pre>{`npm install -g mpv-web-control
-mpv-web-control start`}</pre>
+sudo mpv-web-control install --user <linux-user> --music-root <path> --port <port>`}</pre>
       <p>
-        Or build from source:
+        Use the Linux user that can read your music files, for example <code>didi</code>. If you omit <code>--music-root</code>, the CLI prompts for it. If you omit <code>--port</code>, it prompts and defaults to <code>3000</code>.
+      </p>
+      <p>
+        The install command writes <code>/etc/mpv-web-control/env</code>, installs the systemd unit, and enables and starts/restarts the service by default.
+      </p>
+      <pre>{`sudo systemctl status mpv-web-control
+sudo journalctl -u mpv-web-control -f`}</pre>
+
+      <h2>Build from source</h2>
+      <p>
+        If you're hacking on the project, clone it and install workspace dependencies:
       </p>
       <pre>{`git clone <repo-url> mpv-web-control
 cd mpv-web-control
@@ -52,27 +62,20 @@ pnpm install`}</pre>
         If mpv isn't already running in the background, the server starts it for you and connects over a Unix socket at <code>/tmp/mpv-web-control.sock</code>.
       </p>
 
-      <h2>Deploy to a server</h2>
+      <h2>Manage the service</h2>
       <p>
-        If you're running this on a headless machine (Pi, VPS, whatever) and want it to start on boot, use the packaging script:
+        To install the unit and config without enabling or starting the service, add <code>--no-enable</code>:
       </p>
-      <pre>{`# On your build machine:
-git clone <repo-url> mpv-web-control
-cd mpv-web-control
-pnpm install
-bash scripts/package.sh`}</pre>
+      <pre>{`sudo mpv-web-control install --user <linux-user> --music-root <path> --port <port> --no-enable`}</pre>
       <p>
-        This produces a tarball in <code>dist/</code>. Copy it to the target machine and run the installer:
+        Runtime config lives at <code>/etc/mpv-web-control/env</code>. Playlist data is stored under <code>/var/lib/mpv-web-control/playlists</code>.
       </p>
-      <pre>{`# On the target machine:
-sudo bash scripts/install.sh mpv-web-control-*.tar.gz`}</pre>
       <p>
-        The installer creates a system user, extracts everything to <code>/opt/mpv-web-control</code>, installs a systemd service, and writes a config file to <code>/etc/mpv-web-control/env</code>. You need to set <code>MUSIC_ROOT</code> there before starting:
+        To uninstall:
       </p>
-      <pre>{`sudo nano /etc/mpv-web-control/env
-sudo systemctl start mpv-web-control`}</pre>
+      <pre>{`sudo mpv-web-control uninstall`}</pre>
       <p>
-        To uninstall: <code>sudo bash scripts/install.sh --uninstall</code>.
+        Uninstall stops, disables, and removes the service, then asks what to do with config and data directories. It does not delete Linux users.
       </p>
 
       <h2>Development mode</h2>

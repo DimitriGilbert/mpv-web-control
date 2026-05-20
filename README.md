@@ -30,18 +30,21 @@ sudo apt install mpv
 
 ```bash
 npm install -g mpv-web-control
+sudo mpv-web-control install --user <linux-user> --music-root <path> --port <port>
 ```
 
-Then run:
+Use the Linux user that can read your music files, for example:
+
+```bash
+sudo mpv-web-control install --user didi --music-root /mnt/music --port 3000
+```
+
+If `--music-root` is omitted, the installer prompts for it. If `--port` is omitted, it prompts and defaults to `3000`. The install command writes `/etc/mpv-web-control/env`, installs the systemd unit, and enables and starts/restarts the service by default.
+
+For a one-off foreground run:
 
 ```bash
 mpv-web-control start
-```
-
-Or use without installing:
-
-```bash
-npx mpv-web-control start
 ```
 
 ### From source
@@ -70,24 +73,36 @@ Commands:
 
 ## Production Deployment (Linux)
 
-Build a tarball on any machine:
+Recommended homelab install:
 
 ```bash
-bash scripts/package.sh
+npm install -g mpv-web-control
+sudo mpv-web-control install --user <linux-user> --music-root <path> --port <port>
 ```
 
-Copy the tarball to the target machine, then:
+`--user` controls the systemd service user. Pick the account that can read the music files, such as `didi` on a personal server. Omit `--music-root` to be prompted for it. Omit `--port` to be prompted with a default of `3000`.
+
+The installer enables and starts/restarts the service by default. To install only the unit and config without enabling or starting it:
 
 ```bash
-sudo bash scripts/install.sh mpv-web-control-*.tar.gz
-sudo nano /etc/mpv-web-control/env   # set MUSIC_ROOT
-sudo systemctl start mpv-web-control
+sudo mpv-web-control install --user <linux-user> --music-root <path> --port <port> --no-enable
 ```
+
+Runtime config lives at `/etc/mpv-web-control/env`. Playlist data is stored under `/var/lib/mpv-web-control/playlists`.
 
 Uninstall:
 
 ```bash
-sudo bash scripts/install.sh --uninstall
+sudo mpv-web-control uninstall
+```
+
+Uninstall stops, disables, and removes the service, then asks what to do with config and data directories. It does not delete Linux users.
+
+Status and logs:
+
+```bash
+sudo systemctl status mpv-web-control
+sudo journalctl -u mpv-web-control -f
 ```
 
 ## Development
@@ -112,7 +127,7 @@ http://localhost:5173
 | `HOST` | `0.0.0.0` | Bind address for LAN access. |
 | `PORT` | `3000` | Server port. |
 | `MUSIC_ROOT` | current working directory | Root folder for browsing and playback. |
-| `PLAYLISTS_DIR` | `.mpv-web-control/playlists` under the current working directory | Directory for playlist JSON files. |
+| `PLAYLISTS_DIR` | `.mpv-web-control/playlists` under the current working directory | Directory for playlist JSON files. The systemd install uses `/var/lib/mpv-web-control/playlists`. |
 | `MPV_SOCKET_PATH` | `/tmp/mpv-web-control.sock` | mpv IPC socket path. |
 | `MPV_BIN` | `mpv` | mpv executable path. |
 | `MAX_FOLDER_ITEMS` | `5000` | Safety cap for recursive folder queueing. |
