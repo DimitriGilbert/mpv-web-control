@@ -1,8 +1,15 @@
 {
   "name": "mpv-web-control",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Web remote control for mpv — browser-based UI for audio playback",
-  "keywords": ["mpv", "audio", "remote", "web", "control", "music"],
+  "keywords": [
+    "mpv",
+    "audio",
+    "remote",
+    "web",
+    "control",
+    "music"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
