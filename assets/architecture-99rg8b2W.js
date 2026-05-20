@@ -1,4 +1,4 @@
-import{c as e}from"./index-BuysdpaG.js";var t=e();function n(){return(0,t.jsxs)(`article`,{className:`prose-docs rise-in`,children:[(0,t.jsx)(`p`,{className:`island-kicker mb-3`,children:`Architecture`}),(0,t.jsx)(`h1`,{children:`How the pieces fit together`}),(0,t.jsx)(`p`,{children:`Three packages in a pnpm workspace monorepo, one mpv process, one Unix socket. That's the whole system.`}),(0,t.jsx)(`h2`,{children:`The workspace`}),(0,t.jsx)(`pre`,{children:`mpv-web-control/
+import{c as e}from"./index-BzFlNHD8.js";var t=e();function n(){return(0,t.jsxs)(`article`,{className:`prose-docs rise-in`,children:[(0,t.jsx)(`p`,{className:`island-kicker mb-3`,children:`Architecture`}),(0,t.jsx)(`h1`,{children:`How the pieces fit together`}),(0,t.jsx)(`p`,{children:`Three packages in a pnpm workspace monorepo, one mpv process, one Unix socket. That's the whole system.`}),(0,t.jsx)(`h2`,{children:`The workspace`}),(0,t.jsx)(`pre`,{children:`mpv-web-control/
   packages/
     contract/    ← shared TypeScript types (API shapes)
   apps/
