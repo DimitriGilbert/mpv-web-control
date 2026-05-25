@@ -201,6 +201,10 @@ class MpvService {
     await this.command(['stop'])
   }
 
+  async remove(index: number): Promise<void> {
+    await this.command(['playlist-remove', index])
+  }
+
   async jumpTo(index: number): Promise<void> {
     await this.command(['set_property', 'playlist-pos', index])
   }
@@ -521,6 +525,12 @@ app.post('/api/queue/folder', zValidator('json', queueFolderSchema), async (c) =
 
 app.post('/api/queue/clear', async (c) => {
   await mpv.clear()
+  return c.json(okResponse(), 200)
+})
+
+app.delete('/api/queue/:index', zValidator('param', z.object({ index: z.coerce.number().int().min(0) })), async (c) => {
+  const { index } = c.req.valid('param')
+  await mpv.remove(index)
   return c.json(okResponse(), 200)
 })
 

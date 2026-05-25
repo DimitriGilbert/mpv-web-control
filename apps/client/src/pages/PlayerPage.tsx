@@ -21,6 +21,7 @@ import {
   Search,
   ListMusic,
   Loader2,
+  X,
 } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 
@@ -342,6 +343,10 @@ export function PlayerPage(): JSX.Element {
     mutationFn: api.clearQueue,
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['status'] }),
   })
+  const removeFromQueue = useMutation({
+    mutationFn: api.removeFromQueue,
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['status'] }),
+  })
   const savePlaylist = useMutation({
     mutationFn: api.savePlaylist,
     onSuccess: () => {
@@ -621,29 +626,47 @@ export function PlayerPage(): JSX.Element {
                 <ScrollArea className="h-full">
                   <div>
                     {status.queue.map((item, index) => (
-                      <button
-                        type="button"
+                      <div
                         key={`${item.path}-${index}`}
-                        className={`flex w-full items-center gap-2 px-3 py-1.5 text-xs text-left transition-colors border-b last:border-b-0 ${
+                        className={`flex w-full items-center gap-2 px-3 py-1.5 text-xs transition-colors border-b last:border-b-0 ${
                           index === status.currentIndex
                             ? 'bg-accent/50 font-medium'
-                            : 'hover:bg-accent/30 cursor-pointer'
+                            : 'hover:bg-accent/30'
                         }`}
-                        disabled={jumpTo.isPending}
-                        onClick={() => {
-                          if (index !== status.currentIndex) {
-                            jumpTo.mutate(index)
-                          }
-                        }}
                       >
-                        <span className="w-5 text-right text-muted-foreground tabular-nums shrink-0">
-                          {index + 1}
-                        </span>
-                        {index === status.currentIndex && (
-                          <Play className="h-3 w-3 shrink-0" />
-                        )}
-                        <span className="truncate">{item.name}</span>
-                      </button>
+                        <button
+                          type="button"
+                          className="flex items-center gap-2 flex-1 min-w-0 text-left"
+                          disabled={jumpTo.isPending}
+                          onClick={() => {
+                            if (index !== status.currentIndex) {
+                              jumpTo.mutate(index)
+                            }
+                          }}
+                        >
+                          <span className="w-5 text-right text-muted-foreground tabular-nums shrink-0">
+                            {index + 1}
+                          </span>
+                          {index === status.currentIndex && (
+                            <Play className="h-3 w-3 shrink-0" />
+                          )}
+                          <span className="truncate">{item.name}</span>
+                        </button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5 shrink-0 opacity-0 group-hover:opacity-100 hover:opacity-100 [&:hover]:opacity-100 focus:opacity-100 text-muted-foreground hover:text-destructive"
+                          style={{ opacity: undefined }}
+                          disabled={removeFromQueue.isPending}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            removeFromQueue.mutate(index)
+                          }}
+                          title="Remove from queue"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
                     ))}
                   </div>
                 </ScrollArea>

@@ -63,6 +63,9 @@ export const api = {
   clearQueue(): Promise<OkResponse> {
     return requestJson<OkResponse>('/api/queue/clear', { method: 'POST' })
   },
+  removeFromQueue(index: number): Promise<OkResponse> {
+    return requestJson<OkResponse>(`/api/queue/${index}`, { method: 'DELETE' })
+  },
   playPause(pause?: boolean): Promise<PlayerStatus> {
     return requestJson<PlayerStatus>('/api/player/playpause', {
       method: 'POST',
