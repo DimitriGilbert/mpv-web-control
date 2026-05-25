@@ -55,7 +55,7 @@ interface TreeNodeProps {
   onNavigate: (path: string) => void
 }
 
-function TreeNode({ entry, depth, onNavigate }: TreeNodeProps): JSX.Element {
+function TreeNode({ entry, depth, onNavigate }: TreeNodeProps) {
   const [expanded, setExpanded] = useState(false)
   const queryClient = useQueryClient()
 
@@ -185,7 +185,7 @@ function TreeNode({ entry, depth, onNavigate }: TreeNodeProps): JSX.Element {
   )
 }
 
-function BrowseTab(): JSX.Element {
+function BrowseTab() {
   const [path, setPath] = useState('.')
   const [search, setSearch] = useState('')
 
@@ -297,7 +297,7 @@ function formatDate(iso: string): string {
   })
 }
 
-export function PlayerPage(): JSX.Element {
+export function PlayerPage() {
   const queryClient = useQueryClient()
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
   const [playlistName, setPlaylistName] = useState('')

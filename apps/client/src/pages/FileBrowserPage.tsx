@@ -26,7 +26,7 @@ interface TreeNodeProps {
   onNavigate: (path: string) => void
 }
 
-function TreeNode({ entry, depth, onNavigate }: TreeNodeProps): JSX.Element {
+function TreeNode({ entry, depth, onNavigate }: TreeNodeProps) {
   const [expanded, setExpanded] = useState(false)
   const queryClient = useQueryClient()
 
@@ -156,7 +156,7 @@ function TreeNode({ entry, depth, onNavigate }: TreeNodeProps): JSX.Element {
   )
 }
 
-export function FileBrowserPage(): JSX.Element {
+export function FileBrowserPage() {
   const [path, setPath] = useState('.')
   const [search, setSearch] = useState('')
 

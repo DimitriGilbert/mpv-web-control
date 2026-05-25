@@ -32,7 +32,7 @@ function formatDate(iso: string): string {
   })
 }
 
-export function PlaylistsPage(): JSX.Element {
+export function PlaylistsPage() {
   const [name, setName] = useState('')
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const queryClient = useQueryClient()

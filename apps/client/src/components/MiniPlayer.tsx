@@ -10,7 +10,7 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-export function MiniPlayer(): JSX.Element | null {
+export function MiniPlayer() {
   const queryClient = useQueryClient()
 
   const statusQuery = useQuery({
